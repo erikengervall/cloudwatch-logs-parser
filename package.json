@@ -1,0 +1,28 @@
+{
+  "name": "cloudwatch-logs-parser",
+  "version": "0.0.1",
+  "description": "Feed me CloudWatch exports, yum",
+  "main": "dist/index.js",
+  "repository": "git@github.com:erikengervall/cloudwatch-logs-parser.git",
+  "homepage": "https://github.com/erikengervall/cloudwatch-logs-parser#readme",
+  "license": "MIT",
+  "author": "Erik Engervall <erik.engervall@gmail.com> (https://github.com/erikengervall)",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {},
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.8.1",
+    "@typescript-eslint/parser": "^6.8.0",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-no-only-tests": "^3.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.3",
+    "prettier-eslint": "^16.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
