@@ -14,8 +14,6 @@ const map: Record<
 > = {};
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
-  options; // TODO:
-
   const logStreamFiles = fs.readdirSync(options.destination);
   for (let i = 0; i < logStreamFiles.length; i++) {
     const logStreamFile = logStreamFiles[i];
