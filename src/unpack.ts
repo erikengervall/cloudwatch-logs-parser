@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import PQueue from 'p-queue';
-import { CloudWatchLogsParserOptions } from './types.ts';
-import { isDirectory } from './utils/fs-helpers.ts';
-import { gunzipFile } from './utils/gunzip-file.ts';
-import { logger } from './utils/logger.ts';
+import { CloudWatchLogsParserOptions } from './types';
+import { isDirectory } from './utils/fs-helpers';
+import { gunzipFile } from './utils/gunzip-file';
+import { logger } from './utils/logger';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
   const queue = new PQueue({

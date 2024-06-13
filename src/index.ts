@@ -1,6 +1,6 @@
-import { CloudWatchLogsParserOptions } from "./types.ts";
-import { unpack } from "./unpack.ts";
-import { logger } from "./utils/logger.ts";
+import { CloudWatchLogsParserOptions } from "./types";
+import { unpack } from "./unpack";
+import { logger } from "./utils/logger";
 
 export async function cloudwatchLogsParser(
   options: CloudWatchLogsParserOptions,

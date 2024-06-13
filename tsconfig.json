@@ -1,11 +1,9 @@
 {
   "compilerOptions": {
     "outDir": "dist",
-    "lib": ["es2019"],
-    "target": "es2019",
-    "module": "NodeNext",
-    "allowImportingTsExtensions": true,
-    "moduleResolution": "NodeNext",
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "CommonJS",
     "declaration": true,
     "esModuleInterop": true,
     "noImplicitAny": true,

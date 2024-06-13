@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { jsonParseSafe } from './utils/json-parse-safe.ts';
+import { jsonParseSafe } from './utils/json-parse-safe';
 
 
 const extractedDataFolderPath = path.resolve(
@@ -84,7 +84,7 @@ ${logStreamFilePath}
   }
 
   fs.writeFileSync(
-    path.resolve(__dirname, 'cloudwatch-analyzer-data-map.tson'),
+    path.resolve(__dirname, 'cloudwatch-analyzer-data-mapon'),
     JSON.stringify(map, null, 2),
   );
 }
