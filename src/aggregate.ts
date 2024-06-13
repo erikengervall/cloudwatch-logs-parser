@@ -24,7 +24,6 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     const lines = logStreamFileContent.split('\n');
     for (const line of lines) {
       // 2012-12-12T12:12:12.123Z {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
-      // const datelessLine = line.substring('2012-12-12T12:12:12.123Z '.length); // remove timestamp
       const datelessLine = line.replace(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
         '',
