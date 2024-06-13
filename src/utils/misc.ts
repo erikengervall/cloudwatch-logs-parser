@@ -1,3 +1,5 @@
+import { CloudWatchLogsParserOptions } from '../types';
+
 export function chunkArray<T>(array: T[], chunkSize: number) {
   const chunks = [];
 
@@ -7,6 +9,9 @@ export function chunkArray<T>(array: T[], chunkSize: number) {
   return chunks;
 }
 
+export const DESTINATION_LOG_STREAMS_FOLDER = 'log-streams';
 export const DEFAULT_CONCURRENCY = 10;
 
-export const DESTINATION_LOG_STREAMS_FOLDER = 'log-streams';
+export function getConcurrencyOption(options: CloudWatchLogsParserOptions) {
+  return options.concurrency ?? DEFAULT_CONCURRENCY;
+}

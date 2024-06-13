@@ -8,12 +8,12 @@ import { isDirectory } from './utils/fs-helpers';
 import { gunzipFile } from './utils/gunzip-file';
 import { logger } from './utils/logger';
 import {
-  DEFAULT_CONCURRENCY,
   DESTINATION_LOG_STREAMS_FOLDER,
+  getConcurrencyOption,
 } from './utils/misc';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
-  const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
+  const limit = pLimit(getConcurrencyOption(options));
 
   if (isDirectory(options.destination)) {
     await fs.promises.rm(options.destination, { recursive: true });

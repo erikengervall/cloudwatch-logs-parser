@@ -6,8 +6,8 @@ import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
 import {
-  DEFAULT_CONCURRENCY,
   DESTINATION_LOG_STREAMS_FOLDER,
+  getConcurrencyOption,
 } from './utils/misc';
 
 type Message = string;
@@ -17,12 +17,13 @@ type Output = {
   count: number;
   message: Message;
   payloads: Record<string, PayloadCount>;
+  format: 'json' | 'string';
 };
 
 const dateLen = '2012-12-12T12:12:12.123Z '.length;
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
-  const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
+  const limit = pLimit(getConcurrencyOption(options));
   const logStreamFiles = (
     await fs.promises.readdir(
       path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
@@ -86,6 +87,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
             count: 0,
             message,
             payloads: {},
+            format: 'json',
           };
         }
 
@@ -112,6 +114,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
             count: 0,
             message,
             payloads: {},
+            format: 'string',
           };
         }
 
@@ -142,7 +145,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
    * Used to store the output.
    */
   const output: Output[] = Object.values(map);
-  output.sort((a, b) => a.count - b.count);
+  output.sort((a, b) => b.count - a.count);
   fs.writeFileSync(
     path.resolve(options.destination, 'aggregated-data-arr.json'),
     JSON.stringify(output, null, 2),
