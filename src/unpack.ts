@@ -43,10 +43,13 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
       DESTINATION_LOG_STREAMS_FOLDER,
       filenameWithoutExtension,
     );
+
     await gunzipFile({ source: file, destination });
+
     progress += 1;
     logger.debug(`Unpacked file ${progress} of ${files.length}.`);
   }
+
   const input = files.map((file) => {
     return limit(() => job(file));
   });

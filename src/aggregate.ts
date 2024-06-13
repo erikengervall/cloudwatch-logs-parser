@@ -1,30 +1,40 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import pLimit from 'p-limit';
 
 import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
-import { DESTINATION_LOG_STREAMS_FOLDER } from './utils/misc';
+import {
+  DEFAULT_CONCURRENCY,
+  DESTINATION_LOG_STREAMS_FOLDER,
+} from './utils/misc';
 
 type Message = string;
 type PayloadCount = number;
 
 type Output = {
-  message: Message;
   count: number;
+  message: Message;
   payloads: Record<string, PayloadCount>;
 };
 
-const map: Record<Message, Output> = {};
-const output: Output[] = [];
-
 export async function aggregate(options: CloudWatchLogsParserOptions) {
+  const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
   const logStreamFiles = await fs.promises.readdir(
     path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
+  /**
+   * Used to map messages to their output.
+   */
+  const map: Record<Message, Output> = {};
+  /**
+   * Used to store the output.
+   */
+  const output: Output[] = [];
 
-  for (let i = 0; i < logStreamFiles.length; i++) {
-    const logStreamFile = logStreamFiles[i];
+  let progress = 0;
+  async function job(logStreamFile: string) {
     const logStreamFilePath = path.resolve(options.destination, logStreamFile);
 
     const logStreamFileContent = await fs.promises.readFile(
@@ -62,8 +72,8 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         // initialize
         if (!map[message]) {
           map[message] = {
-            message,
             count: 0,
+            message,
             payloads: {},
           };
         }
@@ -90,8 +100,8 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         // initialize
         if (!map[message]) {
           map[message] = {
-            message,
             count: 0,
+            message,
             payloads: {},
           };
         }
@@ -103,8 +113,14 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       }
     }
 
-    logger.debug(`Processed file ${i + 1} / ${logStreamFiles.length}`);
+    progress += 1;
+    logger.debug(`Unpacked file ${progress} of ${logStreamFiles.length}.`);
   }
+
+  const input = logStreamFiles.map((logStreamFile) => {
+    return limit(() => job(logStreamFile));
+  });
+  await Promise.all(input);
 
   output; // TODO:
   fs.writeFileSync(
