@@ -3,9 +3,6 @@ module.exports = {
   root: true,
   extends: [
     'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
-    'plugin:import/errors', // https://github.com/benmosher/eslint-plugin-import
-    'plugin:import/warnings', // https://github.com/benmosher/eslint-plugin-import
-    'plugin:import/typescript', // https://github.com/benmosher/eslint-plugin-import
     'prettier',
     'plugin:prettier/recommended', // Enables eslint-plugin-prettier and eslint-config-prettier. This will display prettier errors as ESLint errors. Make sure this is always the last configuration in the extends array.
   ],
@@ -24,15 +21,10 @@ module.exports = {
   },
   rules: {
     'no-console': 'warn',
-
     'no-only-tests/no-only-tests': 'error',
-
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
-
-    'import/order': ['error', { groups: ['builtin', 'external', 'index', 'sibling', 'parent', 'internal'] }],
-    'import/newline-after-import': ['error', { count: 1 }],
   },
 };
