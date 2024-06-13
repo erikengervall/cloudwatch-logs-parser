@@ -82,14 +82,11 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         const stringifiedRest = JSON.stringify(rest);
         map[message].payloads[stringifiedRest] =
           (map[message].payloads[stringifiedRest] ?? 0) + 1;
-        continue;
-      }
-
-      /**
-       * @example "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
-       *           ^^^
-       */
-      if (
+      } else if (
+        /**
+         * @example "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
+         *           ^^^
+         */
         datelessLine.startsWith('err') ||
         datelessLine.startsWith('war') ||
         datelessLine.startsWith('inf') ||
@@ -109,12 +106,13 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         map[message].count += 1;
         map[message].payloads[payload] =
           (map[message].payloads[payload] ?? 0) + 1;
-        continue;
       }
     }
 
     progress += 1;
-    logger.debug(`Unpacked file ${progress} of ${logStreamFiles.length}.`);
+    logger.debug(
+      `Processed log stream file ${progress} of ${logStreamFiles.length}.`,
+    );
   }
 
   const input = logStreamFiles.map((logStreamFile) => {
