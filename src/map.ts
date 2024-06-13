@@ -5,12 +5,7 @@ import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
 
-const extractedDataFolderPath = path.resolve(
-  __dirname,
-  'cloudwatch-analyzer-data-extracted',
-);
-
-const idx: Record<
+const map: Record<
   string,
   {
     count: number;
@@ -21,13 +16,10 @@ const idx: Record<
 export async function aggregate(options: CloudWatchLogsParserOptions) {
   options; // TODO:
 
-  const logStreamFiles = fs.readdirSync(extractedDataFolderPath);
+  const logStreamFiles = fs.readdirSync(options.destination);
   for (let i = 0; i < logStreamFiles.length; i++) {
     const logStreamFile = logStreamFiles[i];
-    const logStreamFilePath = path.resolve(
-      extractedDataFolderPath,
-      logStreamFile,
-    );
+    const logStreamFilePath = path.resolve(options.destination, logStreamFile);
 
     const logStreamFileContent = fs.readFileSync(logStreamFilePath, 'utf8');
     const lines = logStreamFileContent.split('\n');
@@ -41,16 +33,16 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           {}) as Record<string, unknown>;
         timestamp; // omit timestamp
         if (typeof message === 'string') {
-          if (!idx[message]) {
-            idx[message] = {
+          if (!map[message]) {
+            map[message] = {
               count: 0,
               payloads: {},
             };
           }
-          idx[message].count += 1;
+          map[message].count += 1;
           const stringifiedRest = JSON.stringify(rest);
-          idx[message].payloads[stringifiedRest] =
-            (idx[message].payloads[stringifiedRest] ?? 0) + 1;
+          map[message].payloads[stringifiedRest] =
+            (map[message].payloads[stringifiedRest] ?? 0) + 1;
         }
         continue;
       }
@@ -64,15 +56,15 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         level === 'deb'
       ) {
         const [message, payload] = subline.split('{');
-        if (!idx[message]) {
-          idx[message] = {
+        if (!map[message]) {
+          map[message] = {
             count: 0,
             payloads: {},
           };
         }
-        idx[message].count += 1;
-        idx[message].payloads[payload] =
-          (idx[message].payloads[payload] ?? 0) + 1;
+        map[message].count += 1;
+        map[message].payloads[payload] =
+          (map[message].payloads[payload] ?? 0) + 1;
         continue;
       }
     }
@@ -82,6 +74,6 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
 
   fs.writeFileSync(
     path.resolve(__dirname, 'cloudwatch-analyzer-data-mapon'),
-    JSON.stringify(idx, null, 2),
+    JSON.stringify(map, null, 2),
   );
 }
