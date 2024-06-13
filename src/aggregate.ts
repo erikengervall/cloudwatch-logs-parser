@@ -15,6 +15,7 @@ const map: Record<
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
   const logStreamFiles = fs.readdirSync(options.destination);
+
   for (let i = 0; i < logStreamFiles.length; i++) {
     const logStreamFile = logStreamFiles[i];
     const logStreamFilePath = path.resolve(options.destination, logStreamFile);
@@ -26,6 +27,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       const subline = line.substring('2012-12-12T12:12:12.123Z '.length); // remove timestamp
 
       // {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
+      // ^^^^^^^^^
       if (subline.startsWith('{"level":')) {
         const { timestamp, message, ...rest } = (jsonParseSafe(subline) ??
           {}) as Record<string, unknown>;
