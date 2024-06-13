@@ -59,7 +59,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       if (datelessLine.startsWith('{"level":')) {
         const { timestamp, message, ...rest } = (jsonParseSafe(datelessLine) ??
           {}) as Record<string, unknown>;
-        timestamp; // omit timestamp
+        timestamp; // omit timestamp so that payloads aggregate
         if (typeof message !== 'string') {
           logger.warn('Message is not a string', {
             datelessLine,
@@ -78,7 +78,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           };
         }
 
-        map[message].count += 1;
+        map[message].count++;
         const stringifiedRest = JSON.stringify(rest);
         map[message].payloads[stringifiedRest] =
           (map[message].payloads[stringifiedRest] ?? 0) + 1;
@@ -103,7 +103,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           };
         }
 
-        map[message].count += 1;
+        map[message].count++;
         map[message].payloads[payload] =
           (map[message].payloads[payload] ?? 0) + 1;
       }
