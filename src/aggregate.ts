@@ -23,10 +23,6 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
 
-  // async function job() {
-  //   //
-  // }
-
   for (let i = 0; i < logStreamFiles.length; i++) {
     const logStreamFile = logStreamFiles[i];
     const logStreamFilePath = path.resolve(options.destination, logStreamFile);
