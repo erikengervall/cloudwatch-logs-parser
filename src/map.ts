@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 
 const extractedDataFolderPath = path.resolve(
@@ -16,7 +17,9 @@ const idx: Record<
   }
 > = {};
 
-function aggregate() {
+export async function aggregate(options: CloudWatchLogsParserOptions) {
+  options; // TODO:
+
   const logStreamFiles = fs.readdirSync(extractedDataFolderPath);
   for (let i = 0; i < logStreamFiles.length; i++) {
     const startTimeOneFile = performance.now();
@@ -88,5 +91,3 @@ ${logStreamFilePath}
     JSON.stringify(idx, null, 2),
   );
 }
-
-aggregate();

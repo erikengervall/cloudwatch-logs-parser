@@ -1,3 +1,4 @@
+import { aggregate } from './map';
 import { CloudWatchLogsParserOptions } from './types';
 import { unpack } from './unpack';
 import { logger } from './utils/logger';
@@ -12,6 +13,6 @@ export function cloudwatchLogsParser(options: CloudWatchLogsParserOptions): {
 
   return {
     unpack: async () => await unpack(options),
-    aggregate: async () => {},
+    aggregate: async () => await aggregate(options),
   };
 }
