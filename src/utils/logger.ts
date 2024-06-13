@@ -2,8 +2,8 @@ import winston from 'winston';
 
 const WINSTON_LOGFORM_FORMATS: winston.Logform.Format[] = [
   winston.format.colorize(), // https://github.com/winstonjs/logform#colorize
-  winston.format.simple(), // https://github.com/winstonjs/logform#simple -> `level: message stringifiedRest`
   winston.format.timestamp(),
+  winston.format.simple(), // https://github.com/winstonjs/logform#simple -> `level: message stringifiedRest`
 ];
 
 export const logger = winston.createLogger({

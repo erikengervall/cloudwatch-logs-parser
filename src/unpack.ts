@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { CloudWatchLogsParserOptions } from './types';
 import { isDirectory } from './utils/fs-helpers';
+import { gunzipFile } from './utils/gunzip-file';
 import { logger } from './utils/logger';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
@@ -21,11 +22,18 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
     return;
   }
 
-  for (const file of files) {
-    logger.debug('Processing file', { file });
-    // await gunzipFile({
-    //   source,
-    //   destination,
-    // });
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const filenameWithoutExtension = file
+      .replace(/\.gz$/, '')
+      .replace(/\//g, '_');
+    filenameWithoutExtension;
+
+    const destination = path.resolve(
+      options.destination,
+      filenameWithoutExtension,
+    );
+    await gunzipFile({ source: file, destination });
+    logger.debug(`Unpacked file ${i + 1} of ${files.length}`);
   }
 }
