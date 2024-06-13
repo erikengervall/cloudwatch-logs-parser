@@ -16,16 +16,18 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
     fs.rmSync(options.destination, { recursive: true });
   }
   fs.mkdirSync(options.destination);
-  logger.debug('Reset output folder', { destination: options.destination });
+  logger.debug('Output folder has been reset.', {
+    destination: options.destination,
+  });
 
   const globPattern = path.resolve(options.source, '**/*.gz');
   const files = globSync(globPattern);
 
   if (files.length === 0) {
-    logger.debug('No files found');
-    return;
+    throw new Error(`No files found in ${options.source}.`);
   }
 
+  let progress = 0;
   async function job(file: string): Promise<void> {
     const filenameWithoutExtension = file
       .replace(/\.gz$/, '')
@@ -35,9 +37,9 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
       filenameWithoutExtension,
     );
     await gunzipFile({ source: file, destination });
-    logger.debug('Unpacked file');
+    progress += 1;
+    logger.debug(`Unpacked file ${progress} of ${files.length}.`);
   }
-
   const input = files.map((file) => {
     return limit(() => job(file));
   });
