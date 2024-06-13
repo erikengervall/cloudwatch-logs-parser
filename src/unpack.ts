@@ -1,4 +1,4 @@
-import { globSync } from 'glob';
+import { glob } from 'glob';
 import fs from 'node:fs';
 import path from 'node:path';
 import pLimit from 'p-limit';
@@ -16,10 +16,10 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
   const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
 
   if (isDirectory(options.destination)) {
-    fs.rmSync(options.destination, { recursive: true });
+    await fs.promises.rm(options.destination, { recursive: true });
   }
-  fs.mkdirSync(options.destination);
-  fs.mkdirSync(
+  await fs.promises.mkdir(options.destination);
+  await fs.promises.mkdir(
     path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
   logger.debug('Output folder has been reset.', {
@@ -27,7 +27,7 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
   });
 
   const globPattern = path.resolve(options.source, '**/*.gz');
-  const files = globSync(globPattern);
+  const files = await glob(globPattern);
 
   if (files.length === 0) {
     throw new Error(`No files found in ${options.source}.`);
