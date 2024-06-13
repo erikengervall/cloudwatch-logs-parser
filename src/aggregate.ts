@@ -4,20 +4,24 @@ import path from 'node:path';
 import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
+import { UNPACKED_LOGS_FOLDER_NAME } from './utils/misc';
 
 type Message = string;
 type PayloadCount = number;
 
-const map: Record<
-  Message,
-  {
-    count: number;
-    payloads: Record<string, PayloadCount>;
-  }
-> = {};
+type Output = {
+  message: Message;
+  count: number;
+  payloads: Record<string, PayloadCount>;
+};
+
+const map: Record<Message, Output> = {};
+const output: Output[] = [];
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
-  const logStreamFiles = fs.readdirSync(options.destination);
+  const logStreamFiles = fs.readdirSync(
+    path.resolve(options.destination, UNPACKED_LOGS_FOLDER_NAME),
+  );
 
   for (let i = 0; i < logStreamFiles.length; i++) {
     const logStreamFile = logStreamFiles[i];
@@ -55,6 +59,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         // initialize
         if (!map[message]) {
           map[message] = {
+            message,
             count: 0,
             payloads: {},
           };
@@ -82,6 +87,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         // initialize
         if (!map[message]) {
           map[message] = {
+            message,
             count: 0,
             payloads: {},
           };
@@ -97,6 +103,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     logger.debug(`Processed file ${i + 1} / ${logStreamFiles.length}`);
   }
 
+  output; // TODO:
   fs.writeFileSync(
     path.resolve(__dirname, 'cloudwatch-analyzer-data-mapon'),
     JSON.stringify(map, null, 2),
