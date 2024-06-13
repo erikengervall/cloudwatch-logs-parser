@@ -4,12 +4,14 @@ import { logger } from './utils/logger';
 
 export function cloudwatchLogsParser(options: CloudWatchLogsParserOptions): {
   unpack: () => Promise<void>;
+  aggregate: () => Promise<void>;
 } {
   if (options.verbose) {
     logger.level = 'debug';
   }
 
   return {
-    unpack: () => unpack(options),
+    unpack: async () => await unpack(options),
+    aggregate: async () => {},
   };
 }

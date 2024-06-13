@@ -8,7 +8,7 @@ const extractedDataFolderPath = path.resolve(
   'cloudwatch-analyzer-data-extracted',
 );
 
-const map: Record<
+const idx: Record<
   string,
   {
     count: number;
@@ -16,7 +16,7 @@ const map: Record<
   }
 > = {};
 
-function processLogStreamFiles() {
+function aggregate() {
   const logStreamFiles = fs.readdirSync(extractedDataFolderPath);
   for (let i = 0; i < logStreamFiles.length; i++) {
     const startTimeOneFile = performance.now();
@@ -38,16 +38,16 @@ function processLogStreamFiles() {
           {}) as Record<string, unknown>;
         timestamp; // omit timestamp
         if (typeof message === 'string') {
-          if (!map[message]) {
-            map[message] = {
+          if (!idx[message]) {
+            idx[message] = {
               count: 0,
               payloads: {},
             };
           }
-          map[message].count += 1;
+          idx[message].count += 1;
           const stringifiedRest = JSON.stringify(rest);
-          map[message].payloads[stringifiedRest] =
-            (map[message].payloads[stringifiedRest] ?? 0) + 1;
+          idx[message].payloads[stringifiedRest] =
+            (idx[message].payloads[stringifiedRest] ?? 0) + 1;
         }
         continue;
       }
@@ -61,15 +61,15 @@ function processLogStreamFiles() {
         level === 'deb'
       ) {
         const [message, payload] = subline.split('{');
-        if (!map[message]) {
-          map[message] = {
+        if (!idx[message]) {
+          idx[message] = {
             count: 0,
             payloads: {},
           };
         }
-        map[message].count += 1;
-        map[message].payloads[payload] =
-          (map[message].payloads[payload] ?? 0) + 1;
+        idx[message].count += 1;
+        idx[message].payloads[payload] =
+          (idx[message].payloads[payload] ?? 0) + 1;
         continue;
       }
     }
@@ -85,8 +85,8 @@ ${logStreamFilePath}
 
   fs.writeFileSync(
     path.resolve(__dirname, 'cloudwatch-analyzer-data-mapon'),
-    JSON.stringify(map, null, 2),
+    JSON.stringify(idx, null, 2),
   );
 }
 
-processLogStreamFiles();
+aggregate();
