@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { jsonParseSafe } from './utils/json-parse-safe';
 
+import { jsonParseSafe } from './utils/json-parse-safe';
 
 const extractedDataFolderPath = path.resolve(
   __dirname,

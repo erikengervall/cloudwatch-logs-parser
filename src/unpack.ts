@@ -1,8 +1,8 @@
 import { globSync } from 'glob';
 import fs from 'node:fs';
 import path from 'node:path';
-
 import PQueue from 'p-queue';
+
 import { CloudWatchLogsParserOptions } from './types';
 import { isDirectory } from './utils/fs-helpers';
 import { gunzipFile } from './utils/gunzip-file';
