@@ -80,6 +80,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
 
         map[message].count++;
         const stringifiedRest = JSON.stringify(rest);
+        // payload count
         map[message].payloads[stringifiedRest] =
           (map[message].payloads[stringifiedRest] ?? 0) + 1;
       } else if (
@@ -104,6 +105,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         }
 
         map[message].count++;
+        // payload count
         map[message].payloads[payload] =
           (map[message].payloads[payload] ?? 0) + 1;
       }
