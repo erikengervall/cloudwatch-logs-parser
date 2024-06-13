@@ -9,4 +9,4 @@ export function chunkArray<T>(array: T[], chunkSize: number) {
 
 export const DEFAULT_CONCURRENCY = 5;
 
-export const UNPACKED_LOGS_FOLDER_NAME = 'unpacked';
+export const DESTINATION_LOG_STREAMS_FOLDER = 'log-streams';

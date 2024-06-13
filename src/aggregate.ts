@@ -4,7 +4,7 @@ import path from 'node:path';
 import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
-import { UNPACKED_LOGS_FOLDER_NAME } from './utils/misc';
+import { DESTINATION_LOG_STREAMS_FOLDER } from './utils/misc';
 
 type Message = string;
 type PayloadCount = number;
@@ -20,7 +20,7 @@ const output: Output[] = [];
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
   const logStreamFiles = fs.readdirSync(
-    path.resolve(options.destination, UNPACKED_LOGS_FOLDER_NAME),
+    path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
 
   for (let i = 0; i < logStreamFiles.length; i++) {

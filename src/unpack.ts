@@ -7,7 +7,10 @@ import { CloudWatchLogsParserOptions } from './types';
 import { isDirectory } from './utils/fs-helpers';
 import { gunzipFile } from './utils/gunzip-file';
 import { logger } from './utils/logger';
-import { DEFAULT_CONCURRENCY, UNPACKED_LOGS_FOLDER_NAME } from './utils/misc';
+import {
+  DEFAULT_CONCURRENCY,
+  DESTINATION_LOG_STREAMS_FOLDER,
+} from './utils/misc';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
   const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
@@ -16,7 +19,9 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
     fs.rmSync(options.destination, { recursive: true });
   }
   fs.mkdirSync(options.destination);
-  fs.mkdirSync(path.resolve(options.destination, UNPACKED_LOGS_FOLDER_NAME));
+  fs.mkdirSync(
+    path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
+  );
   logger.debug('Output folder has been reset.', {
     destination: options.destination,
   });
@@ -35,7 +40,7 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
       .replace(/\//g, '_');
     const destination = path.resolve(
       options.destination,
-      UNPACKED_LOGS_FOLDER_NAME,
+      DESTINATION_LOG_STREAMS_FOLDER,
       filenameWithoutExtension,
     );
     await gunzipFile({ source: file, destination });
