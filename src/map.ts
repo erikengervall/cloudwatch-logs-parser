@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
+import { logger } from './utils/logger';
 
 const extractedDataFolderPath = path.resolve(
   __dirname,
@@ -22,7 +23,6 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
 
   const logStreamFiles = fs.readdirSync(extractedDataFolderPath);
   for (let i = 0; i < logStreamFiles.length; i++) {
-    const startTimeOneFile = performance.now();
     const logStreamFile = logStreamFiles[i];
     const logStreamFilePath = path.resolve(
       extractedDataFolderPath,
@@ -77,13 +77,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       }
     }
 
-    console.log(
-      `Processed file ${i + 1} / ${logStreamFiles.length} in ${
-        Math.round((performance.now() - startTimeOneFile) * 100) / 100
-      }ms
-${logStreamFilePath}
-`,
-    );
+    logger.debug(`Processed file ${i + 1} / ${logStreamFiles.length}`);
   }
 
   fs.writeFileSync(
