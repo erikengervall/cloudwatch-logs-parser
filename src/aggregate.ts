@@ -26,8 +26,10 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       // 2012-12-12T12:12:12.123Z {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
       const subline = line.substring('2012-12-12T12:12:12.123Z '.length); // remove timestamp
 
-      // {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
-      // ^^^^^^^^^
+      /**
+       * @example {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
+       *          ^^^^^^^^^
+       */
       if (subline.startsWith('{"level":')) {
         const { timestamp, message, ...rest } = (jsonParseSafe(subline) ??
           {}) as Record<string, unknown>;
@@ -47,8 +49,10 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         continue;
       }
 
-      // "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
-      //  ^^^
+      /**
+       * @example "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
+       *           ^^^
+       */
       if (
         subline.startsWith('err') ||
         subline.startsWith('war') ||
