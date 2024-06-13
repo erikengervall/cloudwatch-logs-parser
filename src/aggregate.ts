@@ -19,7 +19,7 @@ const map: Record<Message, Output> = {};
 const output: Output[] = [];
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
-  const logStreamFiles = fs.readdirSync(
+  const logStreamFiles = await fs.promises.readdir(
     path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
 
@@ -27,7 +27,10 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     const logStreamFile = logStreamFiles[i];
     const logStreamFilePath = path.resolve(options.destination, logStreamFile);
 
-    const logStreamFileContent = fs.readFileSync(logStreamFilePath, 'utf8');
+    const logStreamFileContent = await fs.promises.readFile(
+      logStreamFilePath,
+      'utf8',
+    );
     const lines = logStreamFileContent.split('\n');
     for (const line of lines) {
       /**
