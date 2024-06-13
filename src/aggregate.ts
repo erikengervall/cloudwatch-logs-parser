@@ -87,10 +87,10 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
          * @example "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
          *           ^^^
          */
-        datelessLine.startsWith('err') ||
-        datelessLine.startsWith('war') ||
-        datelessLine.startsWith('inf') ||
-        datelessLine.startsWith('deb')
+        datelessLine.startsWith('error:') ||
+        datelessLine.startsWith('warn:') ||
+        datelessLine.startsWith('info:') ||
+        datelessLine.startsWith('debug:')
       ) {
         const [message, payload] = datelessLine.split('{');
 
