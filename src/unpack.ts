@@ -1,7 +1,7 @@
 import { globSync } from 'glob';
 import fs from 'node:fs';
 import path from 'node:path';
-import PQueue from 'p-queue';
+import pLimit from 'p-limit';
 
 import { CloudWatchLogsParserOptions } from './types';
 import { isDirectory } from './utils/fs-helpers';
@@ -9,13 +9,7 @@ import { gunzipFile } from './utils/gunzip-file';
 import { logger } from './utils/logger';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
-  const queue = new PQueue({
-    concurrency: options.concurrency ?? 3,
-  });
-  queue.on('completed', (result) => {
-    logger.debug('Unpacked file', { result });
-  });
-  // const limit = pLimit(2);
+  const limit = pLimit(options.concurrency ?? 1);
 
   if (isDirectory(options.destination)) {
     fs.rmSync(options.destination, { recursive: true });
@@ -31,30 +25,49 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
     return;
   }
 
-  async function job(file: string) {
+  async function job(file: string): Promise<void> {
     const filenameWithoutExtension = file
       .replace(/\.gz$/, '')
       .replace(/\//g, '_');
-    filenameWithoutExtension;
-
     const destination = path.resolve(
       options.destination,
       filenameWithoutExtension,
     );
     await gunzipFile({ source: file, destination });
-    return {
-      file,
-    };
+    logger.debug('Unpacked file');
   }
 
-  // const input = [];
-  for (let i = 0; i < files.length; i++) {
-    await queue.add(async () => await job(files[i]));
-    // input.push(limit(async () => await job(files[i])));
-  }
+  // const concurrency = options.concurrency ?? 10;
+  // const jobChunks = chunkArray(
+  //   files.map((file) => {
+  //     return () => job(file);
+  //   }),
+  //   concurrency,
+  // );
 
-  // const result = await Promise.all(input);
-  // logger.debug('Unpacked files', { result });
+  const input = files.map((file) => {
+    return limit(() => job(file));
+  });
+  await Promise.all(input);
 
-  await queue.onEmpty();
+  // for (const jobChunk of jobChunks) {
+  //   const result = await Promise.all(jobChunk.map((job) => job()));
+  //   logger.debug('Job result', { result });
+  // }
+
+  // logger.debug('chunks', {
+  //   chunks: JSON.stringify(chunks, null, 2),
+  // });
+  // split files into chunks
+  // const chunks = chunkArray(files, concurrency);
+
+  // for (const chunk of chunks) {
+  //   const jobs = chunk.map((file) => job(file));
+  //   await Promise.all(jobs);
+  // }
+
+  // const jobChunks = [];
+  // for (let i = 0; i < files.length; i++) {
+
+  // }
 }

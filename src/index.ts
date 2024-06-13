@@ -2,12 +2,14 @@ import { CloudWatchLogsParserOptions } from './types';
 import { unpack } from './unpack';
 import { logger } from './utils/logger';
 
-export async function cloudwatchLogsParser(
-  options: CloudWatchLogsParserOptions,
-): Promise<void> {
+export function cloudwatchLogsParser(options: CloudWatchLogsParserOptions): {
+  unpack: () => Promise<void>;
+} {
   if (options.verbose) {
     logger.level = 'debug';
   }
 
-  await unpack(options);
+  return {
+    unpack: () => unpack(options),
+  };
 }
