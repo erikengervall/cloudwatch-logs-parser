@@ -1,4 +1,4 @@
-import { aggregate } from './map';
+import { aggregate } from './aggregate';
 import { CloudWatchLogsParserOptions } from './types';
 import { unpack } from './unpack';
 import { logger } from './utils/logger';
