@@ -6,3 +6,5 @@ export function chunkArray<T>(array: T[], chunkSize: number) {
   }
   return chunks;
 }
+
+export const DEFAULT_CONCURRENCY = 5;

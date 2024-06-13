@@ -7,9 +7,10 @@ import { CloudWatchLogsParserOptions } from './types';
 import { isDirectory } from './utils/fs-helpers';
 import { gunzipFile } from './utils/gunzip-file';
 import { logger } from './utils/logger';
+import { DEFAULT_CONCURRENCY } from './utils/misc';
 
 export async function unpack(options: CloudWatchLogsParserOptions) {
-  const limit = pLimit(options.concurrency ?? 1);
+  const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
 
   if (isDirectory(options.destination)) {
     fs.rmSync(options.destination, { recursive: true });
@@ -37,37 +38,8 @@ export async function unpack(options: CloudWatchLogsParserOptions) {
     logger.debug('Unpacked file');
   }
 
-  // const concurrency = options.concurrency ?? 10;
-  // const jobChunks = chunkArray(
-  //   files.map((file) => {
-  //     return () => job(file);
-  //   }),
-  //   concurrency,
-  // );
-
   const input = files.map((file) => {
     return limit(() => job(file));
   });
   await Promise.all(input);
-
-  // for (const jobChunk of jobChunks) {
-  //   const result = await Promise.all(jobChunk.map((job) => job()));
-  //   logger.debug('Job result', { result });
-  // }
-
-  // logger.debug('chunks', {
-  //   chunks: JSON.stringify(chunks, null, 2),
-  // });
-  // split files into chunks
-  // const chunks = chunkArray(files, concurrency);
-
-  // for (const chunk of chunks) {
-  //   const jobs = chunk.map((file) => job(file));
-  //   await Promise.all(jobs);
-  // }
-
-  // const jobChunks = [];
-  // for (let i = 0; i < files.length; i++) {
-
-  // }
 }
