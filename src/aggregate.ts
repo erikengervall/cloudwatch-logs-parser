@@ -24,18 +24,21 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
   const logStreamFiles = await fs.promises.readdir(
     path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
   );
+  logger.debug('Found log streams in destination folder.', {
+    logStreamFiles,
+  });
   /**
    * Used to map messages to their output.
    */
   const map: Record<Message, Output> = {};
-  /**
-   * Used to store the output.
-   */
-  const output: Output[] = [];
 
   let progress = 0;
   async function job(logStreamFile: string) {
-    const logStreamFilePath = path.resolve(options.destination, logStreamFile);
+    const logStreamFilePath = path.resolve(
+      options.destination,
+      DESTINATION_LOG_STREAMS_FOLDER,
+      logStreamFile,
+    );
 
     const logStreamFileContent = await fs.promises.readFile(
       logStreamFilePath,
@@ -117,14 +120,22 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     );
   }
 
-  const input = logStreamFiles.map((logStreamFile) => {
+  const input = logStreamFiles.slice(0, 2).map((logStreamFile) => {
     return limit(() => job(logStreamFile));
   });
   await Promise.all(input);
 
-  output; // TODO:
   fs.writeFileSync(
-    path.resolve(__dirname, 'cloudwatch-analyzer-data-mapon'),
+    path.resolve(options.destination, 'aggregated-data-obj.json'),
     JSON.stringify(map, null, 2),
+  );
+
+  /**
+   * Used to store the output.
+   */
+  const output: Output[] = [];
+  fs.writeFileSync(
+    path.resolve(options.destination, 'aggregated-data-arr.json'),
+    JSON.stringify(output, null, 2),
   );
 }

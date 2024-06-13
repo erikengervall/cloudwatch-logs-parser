@@ -7,6 +7,6 @@ export function chunkArray<T>(array: T[], chunkSize: number) {
   return chunks;
 }
 
-export const DEFAULT_CONCURRENCY = 5;
+export const DEFAULT_CONCURRENCY = 10;
 
 export const DESTINATION_LOG_STREAMS_FOLDER = 'log-streams';
