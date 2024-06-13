@@ -106,7 +106,9 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         datelessLine.startsWith('info:') ||
         datelessLine.startsWith('debug:')
       ) {
-        const [message, payload] = datelessLine.split('{');
+        const firstBracketIndex = datelessLine.indexOf('{');
+        const message = datelessLine.substring(0, firstBracketIndex);
+        const payload = datelessLine.substring(firstBracketIndex);
 
         // initialize
         if (!map[message]) {
@@ -136,16 +138,19 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
   });
   await Promise.all(input);
 
-  fs.writeFileSync(
-    path.resolve(options.destination, 'aggregated-data-obj.json'),
-    JSON.stringify(map, null, 2),
-  );
-
-  /**
-   * Used to store the output.
-   */
-  const output: Output[] = Object.values(map);
-  output.sort((a, b) => b.count - a.count);
+  const output = Object.values(map)
+    .sort((a, b) => b.count - a.count)
+    .map((item) => {
+      return {
+        ...item,
+        payloads: Object.entries(item.payloads).map(([payload, count]) => {
+          return {
+            payload,
+            count,
+          };
+        }),
+      };
+    });
   fs.writeFileSync(
     path.resolve(options.destination, 'aggregated-data-arr.json'),
     JSON.stringify(output, null, 2),
