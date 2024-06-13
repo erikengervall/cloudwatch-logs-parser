@@ -5,11 +5,14 @@ import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
 import { logger } from './utils/logger';
 
+type Message = string;
+type PayloadCount = number;
+
 const map: Record<
-  string,
+  Message,
   {
     count: number;
-    payloads: Record<string, number>;
+    payloads: Record<string, PayloadCount>;
   }
 > = {};
 
