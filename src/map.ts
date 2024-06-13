@@ -45,13 +45,13 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
         continue;
       }
 
-      const level = subline.substring(0, 3);
       // "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
+      //  ^^^
       if (
-        level === 'err' ||
-        level === 'war' ||
-        level === 'inf' ||
-        level === 'deb'
+        subline.startsWith('err') ||
+        subline.startsWith('war') ||
+        subline.startsWith('inf') ||
+        subline.startsWith('deb')
       ) {
         const [message, payload] = subline.split('{');
         if (!map[message]) {
