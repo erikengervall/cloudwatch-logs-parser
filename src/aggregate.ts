@@ -23,7 +23,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     const lines = logStreamFileContent.split('\n');
     for (const line of lines) {
       // 2012-12-12T12:12:12.123Z {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
-      const subline = line.substring('2000-12-12T12:12:12.123Z '.length); // remove timestamp
+      const subline = line.substring('2012-12-12T12:12:12.123Z '.length); // remove timestamp
 
       // {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
       if (subline.startsWith('{"level":')) {
