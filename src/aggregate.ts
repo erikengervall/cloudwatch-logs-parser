@@ -19,13 +19,17 @@ type Output = {
   payloads: Record<string, PayloadCount>;
 };
 
+const dateLen = '2012-12-12T12:12:12.123Z '.length;
+
 export async function aggregate(options: CloudWatchLogsParserOptions) {
   const limit = pLimit(options.concurrency ?? DEFAULT_CONCURRENCY);
-  const logStreamFiles = await fs.promises.readdir(
-    path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
-  );
+  const logStreamFiles = (
+    await fs.promises.readdir(
+      path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
+    )
+  ).slice(0, 2);
   logger.debug('Found log streams in destination folder.', {
-    logStreamFiles,
+    logStreamFilesLen: logStreamFiles.length,
   });
   /**
    * Used to map messages to their output.
@@ -39,6 +43,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
       DESTINATION_LOG_STREAMS_FOLDER,
       logStreamFile,
     );
+    logger.debug(`Processing log stream file...`, { logStreamFilePath });
 
     const logStreamFileContent = await fs.promises.readFile(
       logStreamFilePath,
@@ -50,10 +55,13 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
        * @example 2012-12-12T12:12:12.123Z {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
        *          ^^^^^^^^^^^^^^^^^^^^^^^^^
        */
-      const datelessLine = line.replace(
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
-        '',
-      );
+      const datelessLine = line.startsWith('20')
+        ? line.substring(dateLen)
+        : line;
+      // const datelessLine = line.replace(
+      //   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
+      //   '',
+      // );
 
       /**
        * @example {"level":"info","message":"Processing something","timestamp":"2012-12-12 12:12:12"}
@@ -120,7 +128,7 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
     );
   }
 
-  const input = logStreamFiles.slice(0, 2).map((logStreamFile) => {
+  const input = logStreamFiles.map((logStreamFile) => {
     return limit(() => job(logStreamFile));
   });
   await Promise.all(input);
@@ -133,7 +141,8 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
   /**
    * Used to store the output.
    */
-  const output: Output[] = [];
+  const output: Output[] = Object.values(map);
+  output.sort((a, b) => a.count - b.count);
   fs.writeFileSync(
     path.resolve(options.destination, 'aggregated-data-arr.json'),
     JSON.stringify(output, null, 2),
