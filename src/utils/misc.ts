@@ -10,7 +10,7 @@ export function chunkArray<T>(array: T[], chunkSize: number) {
 }
 
 export const DESTINATION_LOG_STREAMS_FOLDER = 'log-streams';
-export const DEFAULT_CONCURRENCY = 10;
+export const DEFAULT_CONCURRENCY = 5;
 
 export function getConcurrencyOption(options: CloudWatchLogsParserOptions) {
   return options.concurrency ?? DEFAULT_CONCURRENCY;

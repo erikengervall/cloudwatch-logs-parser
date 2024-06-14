@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import pLimit from 'p-limit';
+import { z } from 'zod';
 
 import { CloudWatchLogsParserOptions } from './types';
 import { jsonParseSafe } from './utils/json-parse-safe';
@@ -10,32 +11,43 @@ import {
   getConcurrencyOption,
 } from './utils/misc';
 
-type Message = string;
-type PayloadCount = number;
+const Message = z.string();
+type Message = z.infer<typeof Message>;
 
-type Output = {
-  count: number;
-  message: Message;
-  payloads: Record<string, PayloadCount>;
-  format: 'json' | 'string';
-};
+const PayloadCount = z.number();
+type PayloadCount = z.infer<typeof PayloadCount>;
+
+const LogLevel = z.enum(['debug', 'info', 'warn', 'error', 'unmapped']);
+type LogLevel = z.infer<typeof LogLevel>;
+
+const Output = z.object({
+  count: z.number(),
+  message: Message,
+  payloads: z.record(PayloadCount),
+  format: z.enum(['json', 'string']),
+});
+type Output = z.infer<typeof Output>;
 
 const dateLen = '2012-12-12T12:12:12.123Z '.length;
 
 export async function aggregate(options: CloudWatchLogsParserOptions) {
   const limit = pLimit(getConcurrencyOption(options));
-  const logStreamFiles = (
-    await fs.promises.readdir(
-      path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
-    )
-  ).slice(0, 2);
+  const logStreamFiles = await fs.promises.readdir(
+    path.resolve(options.destination, DESTINATION_LOG_STREAMS_FOLDER),
+  );
   logger.debug('Found log streams in destination folder.', {
     logStreamFilesLen: logStreamFiles.length,
   });
   /**
    * Used to map messages to their output.
    */
-  const map: Record<Message, Output> = {};
+  const map: Record<LogLevel, Record<Message, Output>> = {
+    debug: {},
+    info: {},
+    warn: {},
+    error: {},
+    unmapped: {},
+  };
 
   let progress = 0;
   async function job(logStreamFile: string) {
@@ -81,9 +93,12 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           continue;
         }
 
+        const parsedLevel = LogLevel.safeParse(rest.level);
+        const level = parsedLevel.success ? parsedLevel.data : 'unmapped';
+
         // initialize
-        if (!map[message]) {
-          map[message] = {
+        if (!map[level][message]) {
+          map[level][message] = {
             count: 0,
             message,
             payloads: {},
@@ -91,28 +106,31 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           };
         }
 
-        map[message].count++;
+        map[level][message].count++;
         const stringifiedRest = JSON.stringify(rest);
         // payload count
-        map[message].payloads[stringifiedRest] =
-          (map[message].payloads[stringifiedRest] ?? 0) + 1;
+        map[level][message].payloads[stringifiedRest] =
+          (map[level][message].payloads[stringifiedRest] ?? 0) + 1;
       } else if (
         /**
          * @example "debug: Some Axios error {\"axiosErrorData\":{\"data\":{\"error_status_code\":\"SomeError\",\"message\":\"Unexpected error\",\"source\":\"some_service\"},\"success\":false},\"label\":\"some/path\"}": 1,
          *           ^^^
          */
-        datelessLine.startsWith('error:') ||
-        datelessLine.startsWith('warn:') ||
-        datelessLine.startsWith('info:') ||
-        datelessLine.startsWith('debug:')
+        datelessLine.startsWith('error') ||
+        datelessLine.startsWith('warn') ||
+        datelessLine.startsWith('info') ||
+        datelessLine.startsWith('debug')
       ) {
         const firstBracketIndex = datelessLine.indexOf('{');
         const message = datelessLine.substring(0, firstBracketIndex);
         const payload = datelessLine.substring(firstBracketIndex);
 
+        const parsedLevel = LogLevel.safeParse(message.split(':')[0]);
+        const level = parsedLevel.success ? parsedLevel.data : 'unmapped';
+
         // initialize
-        if (!map[message]) {
-          map[message] = {
+        if (!map[level][message]) {
+          map[level][message] = {
             count: 0,
             message,
             payloads: {},
@@ -120,10 +138,10 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
           };
         }
 
-        map[message].count++;
+        map[level][message].count++;
         // payload count
-        map[message].payloads[payload] =
-          (map[message].payloads[payload] ?? 0) + 1;
+        map[level][message].payloads[payload] =
+          (map[level][message].payloads[payload] ?? 0) + 1;
       }
     }
 
@@ -138,21 +156,28 @@ export async function aggregate(options: CloudWatchLogsParserOptions) {
   });
   await Promise.all(input);
 
-  const output = Object.values(map)
-    .sort((a, b) => b.count - a.count)
-    .map((item) => {
-      return {
-        ...item,
-        payloads: Object.entries(item.payloads).map(([payload, count]) => {
-          return {
-            payload,
-            count,
-          };
-        }),
-      };
-    });
-  fs.writeFileSync(
-    path.resolve(options.destination, 'aggregated-data-arr.json'),
-    JSON.stringify(output, null, 2),
-  );
+  for (const level of Object.keys(map) as LogLevel[]) {
+    if (level === 'debug' || level === 'unmapped') {
+      continue;
+    }
+    const output = Object.values(map[level])
+      .sort((a, b) => b.count - a.count)
+      .map((item) => {
+        return {
+          ...item,
+          payloads: Object.entries(item.payloads).map(([payload, count]) => {
+            return {
+              payload,
+              count,
+            };
+          }),
+        };
+      });
+    logger.debug(`Writing output file for level "${level}".`);
+    fs.writeFileSync(
+      path.resolve(options.destination, `ouput-${level}.json`),
+      '[' + output.map((el) => JSON.stringify(el, null, 2)).join(',') + ']', // https://stackoverflow.com/a/69548872/4724146
+      // JSON.stringify(output, null, 2),
+    );
+  }
 }
