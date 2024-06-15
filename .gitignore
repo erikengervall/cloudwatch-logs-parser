@@ -25,7 +25,6 @@ trash
 dist
 data-input
 data-output
-src/test.ts
 
 ## ruts
 target

@@ -11,9 +11,10 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "0": "ts-node src/test.ts all",
-    "1": "ts-node src/test.ts unpack",
-    "2": "ts-node src/test.ts aggregate"
+    "0": "ts-node src/example.ts all",
+    "1": "ts-node src/example.ts unpack",
+    "2": "ts-node src/example.ts aggregate",
+    "3": "cargo run"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
